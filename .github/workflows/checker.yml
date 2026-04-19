@@ -1,0 +1,43 @@
+name: Banana Ball Waitlist Checker
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+jobs:
+  check-waitlists:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install anthropic
+
+      - name: Restore last known status
+        uses: actions/cache@v4
+        with:
+          path: last_status.json
+          key: banana-status-${{ github.run_number }}
+          restore-keys: banana-status-
+
+      - name: Run waitlist checker
+        env:
+          ANTHROPIC_API_KEY:  ${{ secrets.ANTHROPIC_API_KEY }}
+          EMAIL_FROM:         ${{ secrets.EMAIL_FROM }}
+          EMAIL_APP_PASSWORD: ${{ secrets.EMAIL_APP_PASSWORD }}
+          EMAIL_TO:           ${{ secrets.EMAIL_TO }}
+          CITIES:             ${{ secrets.CITIES }}
+        run: python checker.py
+
+      - name: Save updated status
+        uses: actions/cache@v4
+        with:
+          path: last_status.json
+          key: banana-status-${{ github.run_number }}
