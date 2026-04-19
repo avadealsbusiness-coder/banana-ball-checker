@@ -113,15 +113,16 @@ def send_alert_email(open_cities, result):
 
     msg = MIMEMultipart()
     msg["From"]    = EMAIL_FROM
-    msg["To"]      = EMAIL_TO
+    recipients = [addr.strip() for addr in EMAIL_TO.split(",") if addr.strip()]
+    msg["To"]      = ", ".join(recipients)
     msg["Subject"] = subject
     msg.attach(MIMEText(body, "plain"))
 
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
         server.login(EMAIL_FROM, EMAIL_APP_PASSWORD)
-        server.sendmail(EMAIL_FROM, EMAIL_TO, msg.as_string())
+        server.sendmail(EMAIL_FROM, recipients, msg.as_string())
 
-    print("Alert email sent to " + EMAIL_TO)
+    print("Alert email sent to " + str(recipients))
 
 
 def main():
